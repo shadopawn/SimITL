@@ -10,9 +10,13 @@ set(LWS_WITHOUT_TEST_PING ON CACHE BOOL "Don't build the ping test application" 
 set(LWS_WITHOUT_TEST_CLIENT ON CACHE BOOL "Don't build the client test application" FORCE)
 set(LWS_WITH_SSL OFF CACHE BOOL "disable ssl" FORCE)
 set(LWS_WITH_SHARED OFF CACHE BOOL "Build the shared version of the library" FORCE)
+set(DISABLE_WERROR ON CACHE BOOL "Avoid treating compiler warnings as fatal errors" FORCE)
 add_subdirectory(libwebsockets)
 
 # Betaflight sources for cmake
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=incompatible-pointer-types")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=implicit-function-declaration")
 
 set(BETAFLIGHT_SOURCES
   build/build_config.c
