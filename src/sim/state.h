@@ -120,8 +120,10 @@ namespace SimITL{
 
     LowPassFilter gyroLowPassFilter[3]{};
 
-    // gyro / acc
-    quat rotation{1, 0, 0, 1};
+    // x,y,z,w per unity convention
+    quat rotation{0, 0, 0, 1};
+    // gyro / acc 
+    // x,y,z per unity convention X is right, Y is up, Z is forward
     vec3 gyro{0, 0, 0};
     vec3 acc{0, 0, 0};
 

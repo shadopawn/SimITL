@@ -68,15 +68,16 @@ namespace SimITL{
 
     void updateGyroAcc(const SimState& simState){
       int16_t x, y, z;
-
-      x = int16_t(BF::constrain(int(-simState.acc[2] * ACC_SCALE), -32767, 32767));
-      y = int16_t(BF::constrain(int(simState.acc[0] * ACC_SCALE), -32767, 32767));
-      z = int16_t(BF::constrain(int(simState.acc[1] * ACC_SCALE), -32767, 32767));
+      
+      // TODO: Convert this to work with unreal coordinate system
+      x = int16_t(BF::constrain(int(-simState.acc[2] /*z*/ * ACC_SCALE), -32767, 32767));
+      y = int16_t(BF::constrain(int(simState.acc[0] /*x*/ * ACC_SCALE), -32767, 32767));
+      z = int16_t(BF::constrain(int(simState.acc[1] /*y*/ * ACC_SCALE), -32767, 32767));
       BF::virtualAccSet(BF::virtualAccDev, x, y, z);
 
-      x = int16_t(BF::constrain(int(-simState.gyro[2] * GYRO_SCALE * RAD2DEG), -32767, 32767));
-      y = int16_t(BF::constrain(int( simState.gyro[0] * GYRO_SCALE * RAD2DEG), -32767, 32767));
-      z = int16_t(BF::constrain(int(-simState.gyro[1] * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      x = int16_t(BF::constrain(int(-simState.gyro[2] /*z*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      y = int16_t(BF::constrain(int( simState.gyro[0] /*x*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      z = int16_t(BF::constrain(int(-simState.gyro[1] /*y*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
       BF::virtualGyroSet(BF::virtualGyroDev, x, y, z);
 
       BF::imuSetAttitudeQuat(
