@@ -8,7 +8,7 @@ namespace SimITL{
 
   // 20kHz scheduler, is enough to run PID at 8khz
   const int64_t FREQUENCY = 8e3;//20e3;
-  const int64_t DELTA = 1e6 / FREQUENCY;
+  const int64_t DELTA_MICROS = 1e6 / FREQUENCY;
 
   Sim& Sim::getInstance() {
     static Sim simulator;
@@ -93,14 +93,14 @@ namespace SimITL{
   };
 
   void Sim::simStep() {
-    for (auto k = 0u; (total_delta - DELTA) >= 0; k++) {
-      total_delta -= DELTA;
-      const double dt = static_cast<double>(DELTA) / 1e6f;
+    for (auto k = 0u; (total_delta - DELTA_MICROS) >= 0; k++) {
+      total_delta -= DELTA_MICROS;
+      const double dt = static_cast<double>(DELTA_MICROS) / 1e6f;
 
       mPhysics.updateGyro(dt);
   
       // updates betaflight data and schedules bf update
-      BF::update(DELTA, mSimState);
+      BF::update(DELTA_MICROS, mSimState);
 
       mPhysics.updatePhysics(dt);
     }
