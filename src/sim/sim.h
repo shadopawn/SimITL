@@ -51,7 +51,7 @@ namespace SimITL{
     ~Sim();
 
     // initialize
-    void init(const StateInit& stateInit);
+    void init(const char* eepromFilename);
     // update physics params 
     void reinitPhysics(const StateInit& stateInit);
     // update the simulation according to new inputs

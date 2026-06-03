@@ -12,7 +12,6 @@
 std::thread t{};
 bool running = true;
 
-StateInit stateInit = {};
 StateInput stateInput = {};
 StateOutput stateOutput = {};
 
@@ -43,55 +42,6 @@ void printOsdToCli()
     }
     fmt::print("\n");
   }
-}
-
-void initStateDefaults(StateInit& s)
-{
-  // Motor
-  for (int i = 0; i < 4; i++) {
-    s.motorKV[i] = 2800.0f;
-    s.motorR[i]  = 0.07f;
-    s.motorI0[i] = 0.0075f;
-  }
-  s.motorRth  = 0.25f;
-  s.motorCth  = 30.0f;
-  s.motorMaxT = 128.0f;
-
-  // Propeller
-  s.propBladeCount   = 3;
-  s.propMaxRpm       = 36000.0f;
-  s.propAFactor      = 3.5e-9f;
-  s.propTorqueFactor = 0.0087f;
-  s.propInertia      = 3.75e-7f;
-  s.propThrustFactor = { -0.000006f, -0.1f, 11.2f };
-  s.propHarmonic1Amp = 0.1f;
-  s.propHarmonic2Amp = 0.3f;
-
-  // Frame
-  s.frameDragArea     = { 0.0097f, 0.0081f, 0.0098f };
-  s.frameDragConstant = 1.28f;
-  s.quadMass          = 0.349f;
-  s.quadInvInertia    = { 570.0f, 730.0f, 570.0f };
-
-  // Motor positions ~5 inch
-  s.quadMotorPos[0] = {  0.067175f, 0.005f, -0.067175f };
-  s.quadMotorPos[1] = {  0.067175f, 0.005f,  0.067175f };
-  s.quadMotorPos[2] = { -0.067175f, 0.005f, -0.067175f };
-  s.quadMotorPos[3] = { -0.067175f, 0.005f,  0.067175f };
-
-  // Battery
-  s.maxVoltageSag          = 1.4f;
-  s.quadBatCellCount       = 4;
-  s.quadBatCapacityCharged = 1305.0f;
-  s.quadBatCapacity        = 1300.0f;
-
-  // Prop wash 
-  s.minPropWashSpeed      = 1.0f;
-  s.maxPropWashSpeed      = 12.0f;
-  s.propWashAngleOfAttack = 0.1f;
-  s.propWashFactor        = 1.0f;
-
-  s.ambientTemp = 25.0f;
 }
 
 void initInputDefaults(StateInput& s)
@@ -149,21 +99,12 @@ void updateThread()
   }
 }
 
-
-
 int main() {
   fmt::print("simitl-tester starting...\n");
 
-  initStateDefaults(stateInit);
-
-  auto name = "test.bin";
-  std::fill(stateInit.eepromName, stateInit.eepromName + 512, 0);
-  memcpy(stateInit.eepromName, name, strnlen(name, 512));
-  stateInit.eepromName[511] = '\0';
-
   initInputDefaults(stateInput);
 
-  simitl_init(stateInit);
+  BetaflightInit("test.bin");
 
   t = std::thread(updateThread);
   t.join();

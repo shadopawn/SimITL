@@ -8,9 +8,9 @@ SimITL::Sim* sim = nullptr;
 
 // interface for c lib
 extern "C" {
-  void simitl_init(const StateInit& state){
+  void BetaflightInit(const char* eepromFilename){
     sim = &SimITL::Sim::getInstance();
-    sim->init(state);
+    sim->init(eepromFilename);
   }
 
   void simitl_reinit_physics(const StateInit& state){

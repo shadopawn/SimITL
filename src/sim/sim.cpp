@@ -33,21 +33,19 @@ namespace SimITL{
     fmt::print("wsThread end!!\n");
   }
 
-  void Sim::init(const StateInit& stateInit) {
+  void Sim::init(const char* eepromFilename) {
     running = true;
 
     if(!wsThreadRunning){
       fmt::print("Starting ws update thread\n");
       wsThread = std::thread(wsUpdateThread, this);
     }
-
-    mPhysics.initState(stateInit);
     
     //reset rc data to valid data...
     BF::resetRcData();
 
     fmt::print("Initializing betaflight\n");
-    BF::setEepromFileName((const char *)stateInit.eepromName);
+    BF::setEepromFileName(eepromFilename);
     BF::init();
   }
 
@@ -56,25 +54,19 @@ namespace SimITL{
   }
 
   void Sim::update(const StateInput& stateInput){
-    if(!mPhysics.checkSimState()){
-      return; // no SimState, no sim!
-    }
+    int64_t stateUpdateDeltaMicros = static_cast<int64_t>(stateInput.delta * 1000000.0);
 
-    int64_t stateUpdateDelta = static_cast<int64_t>(stateInput.delta * 1000000.0);
-
-    if(stateUpdateDelta > static_cast<int64_t>(100000)){
-      stateUpdateDelta = static_cast<int64_t>(100000);
+    if(stateUpdateDeltaMicros > static_cast<int64_t>(100000)){
+      stateUpdateDeltaMicros = static_cast<int64_t>(100000);
     }
-    if(stateUpdateDelta < static_cast<int64_t>(0)){
-      stateUpdateDelta = static_cast<int64_t>(1);
+    if(stateUpdateDeltaMicros < static_cast<int64_t>(0)){
+      stateUpdateDeltaMicros = static_cast<int64_t>(1);
     }
     
-    total_delta += stateUpdateDelta;
+    total_delta += stateUpdateDeltaMicros;
 
     //update rc data
     BF::setRcData(stateInput.rcData);
-
-    mPhysics.updateState(stateInput);
     
     //rc data is updated independently
     simStep();
@@ -92,13 +84,9 @@ namespace SimITL{
     for (auto k = 0u; (total_delta - DELTA_MICROS) >= 0; k++) {
       total_delta -= DELTA_MICROS;
       const double dt = static_cast<double>(DELTA_MICROS) / 1e6f;
-
-      mPhysics.updateGyro(dt);
   
       // updates betaflight data and schedules bf update
       BF::update(DELTA_MICROS, mSimState);
-
-      mPhysics.updatePhysics(dt);
     }
   }
 
