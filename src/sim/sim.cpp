@@ -23,8 +23,6 @@ namespace SimITL{
   Sim::~Sim() {
   }
 
-  std::chrono::system_clock::time_point start;
-
   void wsUpdateThread(Sim * sim){
     sim->wsThreadRunning = true;
     while (sim->running) {
@@ -51,8 +49,6 @@ namespace SimITL{
     fmt::print("Initializing betaflight\n");
     BF::setEepromFileName((const char *)stateInit.eepromName);
     BF::init();
-
-    start = hr_clock::now();
   }
 
   void Sim::reinitPhysics(const StateInit& stateInit){
