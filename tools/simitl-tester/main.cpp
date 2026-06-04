@@ -16,7 +16,7 @@ StateInput stateInput = {};
 StateOutput stateOutput = {};
 
 uint64_t currentFrame = 1U;
-uint64_t framePrintOsd = 120U;
+uint64_t framePrintOsd = 1600U;
 uint64_t frameRestart = 2000U;
 
 void printOsdToCli()
@@ -46,8 +46,8 @@ void printOsdToCli()
 
 void initInputDefaults(StateInput& s)
 {
-  // 16.6 ms 60 fps
-  s.delta = 0.016f;
+  // 1.25 ms 800 fps
+  s.delta = 0.00125f;
 
   // RC channels: -1.0 to 1.0 (mapped internally to Betaflight 1000-2000 range)
   s.rcData[0] =  0.0f; // roll    (centered)
@@ -91,8 +91,8 @@ void updateThread()
     stateOutput = simitl_get_state();
     printOsdToCli();
 
-    // 16.6 ms 60 fps
-    std::this_thread::sleep_for(std::chrono::microseconds(16600));
+    // 1.25 ms 800 fps
+    std::this_thread::sleep_for(std::chrono::microseconds(1250));
     fmt::print(".");
 
     currentFrame++;

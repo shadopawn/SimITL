@@ -63,13 +63,11 @@ namespace SimITL{
       stateUpdateDeltaMicros = static_cast<int64_t>(1);
     }
     
-    total_delta += stateUpdateDeltaMicros;
-
     //update rc data
     BF::setRcData(stateInput.rcData);
     
     //rc data is updated independently
-    simStep();
+    BF::update(stateUpdateDeltaMicros, mSimState);
   }
 
   const StateOutput& Sim::getStateUpdate() const{
@@ -79,16 +77,6 @@ namespace SimITL{
   void Sim::command(const CommandType cmd){
     mPhysics.updateCommands(cmd);
   };
-
-  void Sim::simStep() {
-    for (auto k = 0u; (total_delta - DELTA_MICROS) >= 0; k++) {
-      total_delta -= DELTA_MICROS;
-      const double dt = static_cast<double>(DELTA_MICROS) / 1e6f;
-  
-      // updates betaflight data and schedules bf update
-      BF::update(DELTA_MICROS, mSimState);
-    }
-  }
 
   void Sim::stop(){
     // stopping the ws coms kind of corrupts managed memory of the engine under linux...
