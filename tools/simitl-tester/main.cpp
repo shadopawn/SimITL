@@ -16,6 +16,7 @@ BetaflightOutput betaflightOutput = {};
 
 uint64_t currentFrame = 1U;
 uint64_t framePrintOsd = 1600U;
+uint64_t framePrintMotors = 400U;
 uint64_t frameRestart = 2000U;
 
 void printOsdToCli()
@@ -43,6 +44,20 @@ void printOsdToCli()
   }
 }
 
+void printMotorPwm()
+{
+  if(currentFrame % framePrintMotors != 0){
+    return;
+  }
+
+  fmt::print("\n");
+  for (int i = 0; i < 4; i++)
+  {
+    fmt::print("Motor {}: PWM = {}", i+1, betaflightOutput.motorPwm[i]);
+    fmt::print("\n");
+  }
+}
+
 void initInputDefaults(BetaflightInput& bfInput)
 {
   // 1.25 ms 800 fps
@@ -59,6 +74,8 @@ void initInputDefaults(BetaflightInput& bfInput)
   bfInput.rcData[7] = -1.0f;
 
   bfInput.accelerometer.z = -9.81f;
+
+  bfInput.gyro.y = 17.4533f; // 1000 degress per second
 }
 
 void updateThread()
@@ -67,6 +84,7 @@ void updateThread()
   {
     betaflightOutput = BetaflightUpdate(betaflightInput);
     printOsdToCli();
+    printMotorPwm();
 
     // 1.25 ms 800 fps
     std::this_thread::sleep_for(std::chrono::microseconds(1250));
