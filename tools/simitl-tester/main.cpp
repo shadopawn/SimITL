@@ -75,7 +75,7 @@ void initInputDefaults(BetaflightInput& bfInput)
 
   bfInput.accelerometer.z = -9.81f;
 
-  bfInput.gyro.y = 17.4533f; // 1000 degress per second
+  bfInput.gyro.y = 17.4533f; // 1000 degress per second in rads per second
 }
 
 void updateThread()

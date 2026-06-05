@@ -1,14 +1,8 @@
 #include "sim.h"
 #include "sim/betaflight_input_output.h"
-#include <chrono>
 #include <cstdint>
-#include <stdio.h>
 
 namespace SimITL{
-
-  // 20kHz scheduler, is enough to run PID at 8khz
-  const int64_t FREQUENCY = 8e3;//20e3;
-  const int64_t DELTA_MICROS = 1e6 / FREQUENCY;
 
   Sim& Sim::getInstance() {
     static Sim simulator;
