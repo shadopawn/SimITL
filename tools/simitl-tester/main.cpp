@@ -3,7 +3,6 @@
 #include <chrono>
 #include <array>
 
-#include "network/packets.h"
 #include "simitl.h"
 
 #include <cctype>
@@ -12,8 +11,8 @@
 std::thread t{};
 bool running = true;
 
-StateInput stateInput = {};
-StateOutput stateOutput = {};
+BetaflightInput betaflightInput = {};
+BetaflightOutput betaflightOutput = {};
 
 uint64_t currentFrame = 1U;
 uint64_t framePrintOsd = 1600U;
@@ -30,7 +29,7 @@ void printOsdToCli()
   {
     for (int c = 0; c < 30; c++)
     {
-      uint8_t v = stateOutput.osd[(l * 30) + c];
+      uint8_t v = betaflightOutput.osd[(l * 30) + c];
       if (std::isprint(v))
       {
         std::cout << v;
@@ -44,51 +43,29 @@ void printOsdToCli()
   }
 }
 
-void initInputDefaults(StateInput& s)
+void initInputDefaults(BetaflightInput& bfInput)
 {
   // 1.25 ms 800 fps
-  s.delta = 0.00125f;
+  bfInput.deltaSeconds = 0.00125f;
 
   // RC channels: -1.0 to 1.0 (mapped internally to Betaflight 1000-2000 range)
-  s.rcData[0] =  0.0f; // roll    (centered)
-  s.rcData[1] =  0.0f; // pitch   (centered)
-  s.rcData[2] = -1.0f; // throttle (low)
-  s.rcData[3] =  0.0f; // yaw     (centered)
-  s.rcData[4] = -1.0f; // arm switch (disarmed)
-  s.rcData[5] = -1.0f;
-  s.rcData[6] = -1.0f;
-  s.rcData[7] = -1.0f;
+  bfInput.rcData[0] =  0.0f; // roll    (centered)
+  bfInput.rcData[1] =  0.0f; // pitch   (centered)
+  bfInput.rcData[2] = -1.0f; // throttle (low)
+  bfInput.rcData[3] =  0.0f; // yaw     (centered)
+  bfInput.rcData[4] = -1.0f; // arm switch (disarmed)
+  bfInput.rcData[5] = -1.0f;
+  bfInput.rcData[6] = -1.0f;
+  bfInput.rcData[7] = -1.0f;
 
-  // Identity rotation matrix
-  s.rotation[0] = { 1.0f, 0.0f, 0.0f };
-  s.rotation[1] = { 0.0f, 1.0f, 0.0f };
-  s.rotation[2] = { 0.0f, 0.0f, 1.0f };
-
-  // Motor imbalance
-  for (int i = 0; i < 4; i++) {
-    s.motorImbalance[i] = { 13.0f, 7.0f, 5.0f };
-  }
-
-  // Gyro noise
-  s.gyroBaseNoiseAmp  = 0.000287f;
-  s.gyrobaseNoiseFreq = 228.0f;
-
-  // Frame harmonics
-  s.frameHarmonic1Amp  = 0.02242f;
-  s.frameHarmonic1Freq = 275.0f;
-  s.frameHarmonic2Amp  = 0.01f;
-  s.frameHarmonic2Freq = 326.66f;
-
-  // Battery fully charged 4s
-  s.vbat = 16.8f;
+  bfInput.accelerometer.z = -9.81f;
 }
 
 void updateThread()
 {
   while (running)
   {
-    simitl_update(stateInput);
-    stateOutput = simitl_get_state();
+    betaflightOutput = BetaflightUpdate(betaflightInput);
     printOsdToCli();
 
     // 1.25 ms 800 fps
@@ -102,7 +79,7 @@ void updateThread()
 int main() {
   fmt::print("simitl-tester starting...\n");
 
-  initInputDefaults(stateInput);
+  initInputDefaults(betaflightInput);
 
   BetaflightInit("test.bin");
 

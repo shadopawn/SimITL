@@ -12,7 +12,7 @@ namespace SimITL{
 
   const static auto GYRO_SCALE = 16.4f;
   const static auto RAD2DEG = (180.0f / float(M_PI));
-  const static auto ACC_SCALE = (256 / 9.80665f);
+  const static auto ACC_SCALE = (2048 / 9.80665f);
 
   namespace BF {
     
@@ -52,94 +52,86 @@ namespace SimITL{
       memcpy(EEPROM_FILENAME, filename, strnlen(filename, maxFileSize));
     }
 
-    void updateBattery(const SimState& simState){
-      BF::setCellCount(simState.stateInit.quadBatCellCount);
+    void updateBattery(const BetaflightInput& betaflightInput){
+      BF::setCellCount(betaflightInput.batteryState.batCellCount);
       // voltage
       BF::voltageMeter_t* vMeter = BF::getVoltageMeter();
-      vMeter->unfiltered      = static_cast<uint16_t>(simState.batteryState.batVoltageSag * 1e2);
-      vMeter->displayFiltered = static_cast<uint16_t>(simState.batteryState.batVoltageSag * 1e2);
-      vMeter->sagFiltered     = static_cast<uint16_t>(simState.batteryState.batVoltage    * 1e2);
+      vMeter->unfiltered      = static_cast<uint16_t>(betaflightInput.batteryState.batVoltageSag * 1e2);
+      vMeter->displayFiltered = static_cast<uint16_t>(betaflightInput.batteryState.batVoltageSag * 1e2);
+      vMeter->sagFiltered     = static_cast<uint16_t>(betaflightInput.batteryState.batVoltage    * 1e2);
       // ampere
       BF::currentMeter_t* cMeter = BF::getCurrentMeter();
-      cMeter->amperage        = static_cast<int32_t>(simState.batteryState.amperage * 1e2);
-      cMeter->amperageLatest  = static_cast<int32_t>(simState.batteryState.amperage * 1e2);
-      cMeter->mAhDrawn        = static_cast<int32_t>(simState.batteryState.mAhDrawn);
+      cMeter->amperage        = static_cast<int32_t>(betaflightInput.batteryState.amperage * 1e2);
+      cMeter->amperageLatest  = static_cast<int32_t>(betaflightInput.batteryState.amperage * 1e2);
+      cMeter->mAhDrawn        = static_cast<int32_t>(betaflightInput.batteryState.mAhDrawn);
     }
 
-    void updateGyroAcc(const SimState& simState){
+    void updateGyroAcc(const BetaflightInput& betaflightInput){
       int16_t x, y, z;
       
       // TODO: Convert this to work with unreal coordinate system
-      x = int16_t(BF::constrain(int(-simState.acc[2] /*z*/ * ACC_SCALE), -32767, 32767));
-      y = int16_t(BF::constrain(int(simState.acc[0] /*x*/ * ACC_SCALE), -32767, 32767));
-      z = int16_t(BF::constrain(int(simState.acc[1] /*y*/ * ACC_SCALE), -32767, 32767));
+      x = int16_t(BF::constrain(int(betaflightInput.accelerometer.x * ACC_SCALE), -32767, 32767));
+      y = int16_t(BF::constrain(int(-betaflightInput.accelerometer.y * ACC_SCALE), -32767, 32767));
+      z = int16_t(BF::constrain(int(betaflightInput.accelerometer.z * ACC_SCALE), -32767, 32767));
       BF::virtualAccSet(BF::virtualAccDev, x, y, z);
 
-      x = int16_t(BF::constrain(int(-simState.gyro[2] /*z*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
-      y = int16_t(BF::constrain(int( simState.gyro[0] /*x*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
-      z = int16_t(BF::constrain(int(-simState.gyro[1] /*y*/ * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      x = int16_t(BF::constrain(int(betaflightInput.gyro.x * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      y = int16_t(BF::constrain(int(-betaflightInput.gyro.y * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      z = int16_t(BF::constrain(int(-betaflightInput.gyro.z * GYRO_SCALE * RAD2DEG), -32767, 32767));
       BF::virtualGyroSet(BF::virtualGyroDev, x, y, z);
 
       BF::imuSetAttitudeQuat(
-          simState.rotation[3],
-          -simState.rotation[2],
-          -simState.rotation[0],
-          simState.rotation[1]);
+          betaflightInput.rotation.w,
+          betaflightInput.rotation.x,
+          betaflightInput.rotation.y,
+          betaflightInput.rotation.z);
     }
 
-    void updateGps(const SimState& simState){
-      const auto DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS = 1.113195f;
-      const auto cosLon0 = 0.63141842418f;
+    // void updateGps(const SimState& simState){
+    //   const auto DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS = 1.113195f;
+    //   const auto cosLon0 = 0.63141842418f;
 
-      // set gps:
-      static int64_t last_millis = 0;
-      int64_t millis = BF::micros_passed / 1000;
+    //   // set gps:
+    //   vec3 pos;
+    //   copy(pos, simState.stateInput.position);
 
-      //if (millis - last_millis > 100) {
-      {
-        vec3 pos;
-        copy(pos, simState.stateInput.position);
+    //   BF::EnableState(BF::GPS_FIX);
+    //   BF::gpsSol.numSat = 10;
+    //   BF::gpsSol.llh.lat =
+    //       int32_t(
+    //           pos[2] * 100 /
+    //           DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS) +
+    //       simState.stateInit.gps.lat;
+    //   BF::gpsSol.llh.lon =
+    //       int32_t(
+    //           pos[0] * 100 /
+    //           (cosLon0 *
+    //             DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS)) +
+    //       simState.stateInit.gps.lon;
+    //   BF::gpsSol.llh.altCm = int32_t(pos[1] * 100) + simState.stateInit.gps.alt;
+    //   vec3 linearVelocity;
+    //   copy(linearVelocity, simState.stateInput.linearVelocity);
+    //   BF::gpsSol.groundSpeed = uint16_t(length(linearVelocity) * 100);
+    //   BF::GPS_update |= BF::GPS_MSP_UPDATE;
+    // }
 
-        BF::EnableState(BF::GPS_FIX);
-        BF::gpsSol.numSat = 10;
-        BF::gpsSol.llh.lat =
-            int32_t(
-                pos[2] * 100 /
-                DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS) +
-            simState.stateInit.gps.lat;
-        BF::gpsSol.llh.lon =
-            int32_t(
-                pos[0] * 100 /
-                (cosLon0 *
-                 DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR_IN_HUNDREDS_OF_KILOMETERS)) +
-            simState.stateInit.gps.lon;
-        BF::gpsSol.llh.altCm = int32_t(pos[1] * 100) + simState.stateInit.gps.alt;
-        vec3 linearVelocity;
-        copy(linearVelocity, simState.stateInput.linearVelocity);
-        BF::gpsSol.groundSpeed = uint16_t(length(linearVelocity) * 100);
-        BF::GPS_update |= BF::GPS_MSP_UPDATE;
-
-        last_millis = millis;
-      }
-    }
-
-    void updateOsd(SimState& simState){
+    void updateOsd(BetaflightOutput& betaflightOutput){
       bool osdChanged = false;
       for (int y = 0; y < VIDEO_LINES; y++) {
         for (int x = 0; x < CHARS_PER_LINE; x++) {
-          simState.stateOutput.osd[y * CHARS_PER_LINE + x] = BF::osdScreen[y][x];
+          betaflightOutput.osd[y * CHARS_PER_LINE + x] = BF::osdScreen[y][x];
         }
       }
     }
 
-    bool update(uint64_t dt, SimState& simState){
+    BetaflightOutput update(uint64_t dt, const BetaflightInput& betaflightInput){
       bool schedulerExecuted = false;
 
       BF::micros_passed += dt;
       
-      updateBattery(simState);
-      updateGyroAcc(simState);
-      updateGps(simState);
+      updateBattery(betaflightInput);
+      updateGyroAcc(betaflightInput);
+      // updateGps(simState);
 
       if (BF::sleep_timer > 0) {
         BF::sleep_timer -= dt;
@@ -149,20 +141,20 @@ namespace SimITL{
         schedulerExecuted = true;
       }
 
-      updateOsd(simState);
+      BetaflightOutput betaflightOutput {};
 
-      simState.armed = (BF::armingFlags & BF::ARMED) == BF::ARMED;
-      simState.armingDisabledFlags = (int)BF::getArmingDisableFlags();
-      simState.microsPassed = BF::micros_passed;
-      simState.motorsState[0].pwm = BF::motorsPwm[0] / 1000.0f;
-      simState.motorsState[1].pwm = BF::motorsPwm[1] / 1000.0f;
-      simState.motorsState[2].pwm = BF::motorsPwm[2] / 1000.0f;
-      simState.motorsState[3].pwm = BF::motorsPwm[3] / 1000.0f;
+      updateOsd(betaflightOutput);
 
-      simState.beep = BF::getBeeper() ? 1U : 0U;
-      simState.stateOutput.beep = simState.beep;
+      betaflightOutput.armed = (BF::armingFlags & BF::ARMED) == BF::ARMED;
+      betaflightOutput.armingDisabledFlags = (int)BF::getArmingDisableFlags();
+      betaflightOutput.motorPwm[0] = BF::motorsPwm[0] / 1000.0f;
+      betaflightOutput.motorPwm[1] = BF::motorsPwm[1] / 1000.0f;
+      betaflightOutput.motorPwm[2] = BF::motorsPwm[2] / 1000.0f;
+      betaflightOutput.motorPwm[3] = BF::motorsPwm[3] / 1000.0f;
 
-      return schedulerExecuted;
+      betaflightOutput.beeping = BF::getBeeper();
+
+      return betaflightOutput;
     }
 
     void setDebugValue(uint8_t mode, uint8_t index, int16_t value){

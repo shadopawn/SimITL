@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.3)
 set(SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/util/SimplexNoise.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sim/bf.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sim/physics.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sim/sim.cpp
 )
 

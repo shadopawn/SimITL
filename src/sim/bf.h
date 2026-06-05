@@ -3,7 +3,7 @@
  */
 
 #include <cstdint>
-#include "state.h"
+#include "betaflight_input_output.h"
 
 #ifndef BF_H
 #define BF_H
@@ -45,7 +45,7 @@ namespace SimITL{
      * \param[in] simState The state that is writen to the fc.
      * \return True if scheduler was executed, false if slept.
      */
-    bool update(uint64_t dt, SimState& simState);
+    BetaflightOutput update(uint64_t dt, const BetaflightInput& betaflightInput);
 
     /**
      * \brief BF debug call. Writes to blackbox.

@@ -1,10 +1,6 @@
-#include "network/packets.h"
+#include "sim/betaflight_input_output.h"
 
 extern "C" {
   extern void BetaflightInit(const char* eepromFilename);
-  extern void simitl_reinit_physics(const StateInit& state);
-  extern void simitl_update(const StateInput& state);
-  extern StateOutput simitl_get_state();
-  extern void simitl_command(const CommandType cmd);
-  extern void simitl_stop();
+  extern BetaflightOutput BetaflightUpdate(const BetaflightInput& betaflightInput);
 }

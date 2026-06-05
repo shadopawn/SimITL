@@ -1,5 +1,5 @@
 #include "sim.h"
-
+#include "sim/betaflight_input_output.h"
 #include <chrono>
 #include <cstdint>
 #include <stdio.h>
@@ -15,9 +15,7 @@ namespace SimITL{
     return simulator;
   }
 
-  Sim::Sim()
-  {
-    mPhysics.setSimState(&mSimState);
+  Sim::Sim(){
   }
 
   Sim::~Sim() {
@@ -49,12 +47,8 @@ namespace SimITL{
     BF::init();
   }
 
-  void Sim::reinitPhysics(const StateInit& stateInit){
-    mPhysics.initState(stateInit);
-  }
-
-  void Sim::update(const StateInput& stateInput){
-    int64_t stateUpdateDeltaMicros = static_cast<int64_t>(stateInput.delta * 1000000.0);
+  BetaflightOutput Sim::update(const BetaflightInput& betaflightInput){
+    int64_t stateUpdateDeltaMicros = static_cast<int64_t>(betaflightInput.deltaSeconds * 1000000.0);
 
     if(stateUpdateDeltaMicros > static_cast<int64_t>(100000)){
       stateUpdateDeltaMicros = static_cast<int64_t>(100000);
@@ -64,31 +58,9 @@ namespace SimITL{
     }
     
     //update rc data
-    BF::setRcData(stateInput.rcData);
+    BF::setRcData(betaflightInput.rcData);
     
     //rc data is updated independently
-    BF::update(stateUpdateDeltaMicros, mSimState);
+    return BF::update(stateUpdateDeltaMicros, betaflightInput);
   }
-
-  const StateOutput& Sim::getStateUpdate() const{
-    return mSimState.stateOutput;
-  }
-
-  void Sim::command(const CommandType cmd){
-    mPhysics.updateCommands(cmd);
-  };
-
-  void Sim::stop(){
-    // stopping the ws coms kind of corrupts managed memory of the engine under linux...
-    /*
-    running = false;
-
-    BF::stopSerial();
-
-    if(wsThread.joinable()){
-      wsThread.join();
-    }
-    */
-  }
-
 }

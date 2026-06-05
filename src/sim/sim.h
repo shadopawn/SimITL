@@ -6,7 +6,6 @@
 #endif
 
 #include "util/vector_math.h"
-#include "network/packets.h"
 
 #include "sharedmem.h"
 
@@ -27,8 +26,6 @@
 #include <chrono>
 
 #include "sim/bf.h"
-#include "sim/state.h"
-#include "sim/physics.h"
 
 using hr_clock = std::chrono::high_resolution_clock;
 
@@ -52,23 +49,12 @@ namespace SimITL{
 
     // initialize
     void init(const char* eepromFilename);
-    // update physics params 
-    void reinitPhysics(const StateInit& stateInit);
     // update the simulation according to new inputs
-    void update(const StateInput& stateInput);
+    BetaflightOutput update(const BetaflightInput& betaflightInput);
 
     //TODO: remove
     // sim update step
     void step();
-
-    // retrieves the current state output data
-    const StateOutput& getStateUpdate() const;
-
-    // executes a command
-    void command(const CommandType cmd);
-
-    //stop threads
-    void stop();
 
     float getRcData(uint8_t channel);
     uint32_t getRcDataTimeUs();
@@ -77,9 +63,6 @@ namespace SimITL{
 
     bool running = false;
     bool wsThreadRunning = false;
-
-    SimState mSimState{};
-    Physics mPhysics{};
 
   private:
     uint16_t rc_data[16] {};
@@ -99,8 +82,6 @@ namespace SimITL{
 
     std::thread wsThread{};
     std::thread stateUdpThread{};
-
-    static void update_rotation(double dt, StateInput& state);
 
 
     void simStep();
