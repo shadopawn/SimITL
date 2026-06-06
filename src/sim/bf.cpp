@@ -82,8 +82,8 @@ namespace SimITL{
 
       BF::imuSetAttitudeQuat(
           betaflightInput.rotation.w,
-          betaflightInput.rotation.x,
-          betaflightInput.rotation.y,
+          -betaflightInput.rotation.x,
+          -betaflightInput.rotation.y,
           betaflightInput.rotation.z);
     }
 
@@ -147,7 +147,7 @@ namespace SimITL{
 
       betaflightOutput.armed = (BF::armingFlags & BF::ARMED) == BF::ARMED;
       betaflightOutput.armingDisabledFlags = (int)BF::getArmingDisableFlags();
-      
+
       betaflightOutput.motorPwm[0] = BF::motorsPwm[0] / 1000.0f;
       betaflightOutput.motorPwm[1] = BF::motorsPwm[1] / 1000.0f;
       betaflightOutput.motorPwm[2] = BF::motorsPwm[2] / 1000.0f;
