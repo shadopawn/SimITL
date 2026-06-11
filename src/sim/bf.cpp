@@ -27,7 +27,7 @@ namespace SimITL{
     {
       uint32_t timeUs = BF::micros_passed & 0xFFFFFFFF;
 
-      std::array<uint16_t, 8> rcData;
+      // std::array<uint16_t, 8> rcData;
       for (int i = 0; i < 8; i++)
       {
         rcDataCache[i] = uint16_t(1500 + data[i] * 500);
@@ -69,7 +69,7 @@ namespace SimITL{
     void updateGyroAcc(const BetaflightInput& betaflightInput){
       int16_t x, y, z;
       
-      // TODO: Convert this to work with unreal coordinate system
+      // Corrdinate system is adjusted to work with input from the unreal coordinate system
       x = int16_t(BF::constrain(int(betaflightInput.accelerometer.x * ACC_SCALE), -32767, 32767));
       y = int16_t(BF::constrain(int(-betaflightInput.accelerometer.y * ACC_SCALE), -32767, 32767));
       z = int16_t(BF::constrain(int(betaflightInput.accelerometer.z * ACC_SCALE), -32767, 32767));

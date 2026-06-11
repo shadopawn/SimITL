@@ -28,6 +28,8 @@ namespace SimITL{
   private:
     std::thread wsThread{};
 
+    int64_t totalDeltaMicros = 0;
+
     // protected for testing
   protected:
     Sim();

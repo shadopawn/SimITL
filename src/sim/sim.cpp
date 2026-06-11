@@ -4,6 +4,9 @@
 
 namespace SimITL{
 
+  // Targeting 8khz update loop
+  const int64_t DELTA_MICROS = 125L;
+
   Sim& Sim::getInstance() {
     static Sim simulator;
     return simulator;
@@ -42,19 +45,25 @@ namespace SimITL{
   }
 
   BetaflightOutput Sim::update(const BetaflightInput& betaflightInput){
-    int64_t stateUpdateDeltaMicros = static_cast<int64_t>(betaflightInput.deltaSeconds * 1000000.0);
+    int64_t updateDeltaMicros = static_cast<int64_t>(betaflightInput.deltaSeconds * 1000000.0);
 
-    if(stateUpdateDeltaMicros > static_cast<int64_t>(100000)){
-      stateUpdateDeltaMicros = static_cast<int64_t>(100000);
+    if(updateDeltaMicros > static_cast<int64_t>(100000)){
+      updateDeltaMicros = static_cast<int64_t>(100000);
     }
-    if(stateUpdateDeltaMicros < static_cast<int64_t>(0)){
-      stateUpdateDeltaMicros = static_cast<int64_t>(1);
+    if(updateDeltaMicros < static_cast<int64_t>(0)){
+      updateDeltaMicros = static_cast<int64_t>(1);
     }
+
+    totalDeltaMicros += updateDeltaMicros;
     
     //update rc data
     BF::setRcData(betaflightInput.rcData);
     
-    //rc data is updated independently
-    return BF::update(stateUpdateDeltaMicros, betaflightInput);
+    BetaflightOutput betaflightOutput {};
+    for (auto k = 0u; (totalDeltaMicros - DELTA_MICROS) >= 0; k++) {
+      totalDeltaMicros -= DELTA_MICROS;
+      betaflightOutput = BF::update(DELTA_MICROS, betaflightInput);
+    }
+    return betaflightOutput;
   }
 }
