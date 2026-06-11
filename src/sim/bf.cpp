@@ -10,9 +10,9 @@ namespace SimITL{
   #define M_PI 3.14159265358979
   #endif
 
-  const static auto GYRO_SCALE = 4.1f;
+  const static auto GYRO_SCALE = 16.4f;
   const static auto RAD2DEG = (180.0f / float(M_PI));
-  const static auto ACC_SCALE = (2048 / 9.80665f);
+  const static auto ACC_SCALE = (256 / 9.80665f);
 
   namespace BF {
     
@@ -75,8 +75,8 @@ namespace SimITL{
       z = int16_t(BF::constrain(int(betaflightInput.accelerometer.z * ACC_SCALE), -32767, 32767));
       BF::virtualAccSet(BF::virtualAccDev, x, y, z);
 
-      x = int16_t(BF::constrain(int(betaflightInput.gyro.x * GYRO_SCALE * RAD2DEG), -32767, 32767));
-      y = int16_t(BF::constrain(int(-betaflightInput.gyro.y * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      x = int16_t(BF::constrain(int(-betaflightInput.gyro.x * GYRO_SCALE * RAD2DEG), -32767, 32767));
+      y = int16_t(BF::constrain(int(betaflightInput.gyro.y * GYRO_SCALE * RAD2DEG), -32767, 32767));
       z = int16_t(BF::constrain(int(-betaflightInput.gyro.z * GYRO_SCALE * RAD2DEG), -32767, 32767));
       BF::virtualGyroSet(BF::virtualGyroDev, x, y, z);
 
