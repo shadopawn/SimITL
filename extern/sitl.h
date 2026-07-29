@@ -53,6 +53,8 @@ namespace SimITL{
       // rc data
       uint16_t rcDataCache[16] {};
       uint32_t rcDataReceptionTimeUs = 0U;
+      // set by setRcData when a frame is accepted, consumed by rxRcFrameStatus
+      bool newRcFrameAvailable = false;
 
       static float rxRcReadData(const BF::rxRuntimeState_t *rxRuntimeState, uint8_t channel)
       {
@@ -65,9 +67,17 @@ namespace SimITL{
         return rcDataReceptionTimeUs;
       }
 
+      // polled by rxFrameCheck every rx task run, so it must only report a
+      // complete frame once per accepted frame, otherwise bf sees a new packet
+      // on every scheduler pass regardless of the rate rc data is pushed in at.
       static uint8_t rxRcFrameStatus(BF::rxRuntimeState_t *rxRuntimeState)
       {
-        UNUSED(rxRuntimeState);
+        if (!newRcFrameAvailable) {
+          return BF::RX_FRAME_PENDING;
+        }
+        newRcFrameAvailable = false;
+        // driver supplied packet timestamp, used by bf for rx smoothing/feedforward
+        rxRuntimeState->lastRcFrameTimeUs = rcDataReceptionTimeUs;
         return BF::RX_FRAME_COMPLETE;
       }
 

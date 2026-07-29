@@ -14,33 +14,63 @@ namespace SimITL{
   const static auto RAD2DEG = (180.0f / float(M_PI));
   const static auto ACC_SCALE = (256 / 9.80665f);
 
+  const static uint32_t RC_FRAME_INTERVAL = 8333;
+
   namespace BF {
-    
+
+    // set once the first frame has been accepted, so startup is not gated by
+    // rcDataReceptionTimeUs still sitting at its initial value
+    static bool rcDataReceived = false;
+
     void resetRcData(){
       //reset rc data to valid data...
       for(int i = 0; i < SIMULATOR_MAX_RC_CHANNELS; i++){
         rcDataCache[i] = 1000U;
       }
+      rcDataReceptionTimeUs = 0U;
+      newRcFrameAvailable = false;
+      rcDataReceived = false;
     }
 
     void setRcData(const float (&data)[8])
     {
       uint32_t timeUs = BF::micros_passed & 0xFFFFFFFF;
 
-      // std::array<uint16_t, 8> rcData;
-      for (int i = 0; i < 8; i++)
-      {
-        rcDataCache[i] = uint16_t(1500 + data[i] * 500);
-      }
-      rcDataReceptionTimeUs = timeUs;
-      // BF::rxMspFrameReceive(&rcData[0], 8);
       // hack to trick bf into using sim data...
+      // kept ahead of the rate gate so the rx hookup does not depend on a frame
+      // being accepted on this call
       BF::rxRuntimeState.channelCount = SIMULATOR_MAX_RC_CHANNELS; // SimITL target.h
       BF::rxRuntimeState.rcReadRawFn = BF::rxRcReadData;
       BF::rxRuntimeState.rcFrameStatusFn = BF::rxRcFrameStatus;
       BF::rxRuntimeState.rxProvider = BF::RX_PROVIDER_UDP;
       //BF::rxRuntimeState.rcFrameTimeUsFn = BF::rxRcFrameTimeUs;
-      BF::rxRuntimeState.lastRcFrameTimeUs = timeUs;
+
+      uint16_t incomingData[8] = {};
+      bool rcDataSame = true;
+      for (int i = 0; i < 8; i++)
+      {
+        incomingData[i] = uint16_t(1500 + data[i] * 500);
+        if (rcDataCache[i] != incomingData[i])
+        {
+          rcDataSame = false;
+        }
+      }
+
+      // changed data goes through straight away, unchanged data only once the
+      // heartbeat interval has elapsed
+      uint32_t timeSinceLastFrame = timeUs - rcDataReceptionTimeUs;
+      if (rcDataReceived && rcDataSame && timeSinceLastFrame < RC_FRAME_INTERVAL){
+        return;
+      }
+
+      for (int i = 0; i < 8; i++)
+      {
+        rcDataCache[i] = incomingData[i];
+      }
+      rcDataReceptionTimeUs = timeUs;
+      rcDataReceived = true;
+      // picked up by rxRcFrameStatus on the next rx task run
+      newRcFrameAvailable = true;
     }
 
     void setEepromFileName(const char* filename){
