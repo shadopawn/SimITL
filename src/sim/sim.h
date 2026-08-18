@@ -22,6 +22,8 @@ namespace SimITL{
     // update the simulation according to new inputs
     BetaflightOutput update(const BetaflightInput& betaflightInput);
 
+    void setDefaultDebugValue(uint8_t index, int16_t value);
+
     bool running = false;
     bool wsThreadRunning = false;
 

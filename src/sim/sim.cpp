@@ -66,4 +66,8 @@ namespace SimITL{
     }
     return betaflightOutput;
   }
+
+  void Sim::setDefaultDebugValue(uint8_t index, int16_t value){
+    BF::setDebugValue(DEBUG_SIMITL, index, value);
+  }
 }

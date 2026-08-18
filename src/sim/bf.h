@@ -8,7 +8,7 @@
 #ifndef BF_H
 #define BF_H
 
-#define E_DEBUG_SIM 90
+#define DEBUG_SIMITL 11 // Hijacking DEBUG_ESC_SENSOR_RPM for sim debug values
 
 namespace SimITL{
   namespace BF{

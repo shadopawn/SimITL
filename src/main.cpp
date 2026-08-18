@@ -16,4 +16,8 @@ extern "C" {
   BetaflightOutput BetaflightUpdate(const BetaflightInput& betaflightInput){
     return sim->update(betaflightInput);
   }
+
+  void SetBlackboxValue(uint8_t index, int16_t value){
+    sim->setDefaultDebugValue(index, value);
+  }
 }
