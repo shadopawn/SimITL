@@ -189,6 +189,9 @@ namespace SimITL{
     }
 
     void setDebugValue(uint8_t mode, uint8_t index, int16_t value){
+      if (index >= DEBUG16_VALUE_COUNT) {
+        return;
+      }
       BF_DEBUG_SET(mode, index, value);
     }
 
